@@ -1,6 +1,6 @@
 package list
 
-type ArrayList[T any] []T
+type ArrayList[T comparable] []T
 
 func (l ArrayList[T]) Append(item T) int {
 	l = append(l, item)
@@ -51,4 +51,17 @@ func (l ArrayList[T]) Set(item T, index int) {
 		panic("Invalid index")
 	}
 	l[index] = item
+}
+
+func (l ArrayList[T]) ContentsEqualTo(listToCompare ArrayList[T]) bool {
+	if len(l) != len(listToCompare) {
+		return false
+	}
+
+	for i := 0; i < len(l); i++ {
+		if l[i] != listToCompare[i] {
+			return false
+		}
+	}
+	return true
 }

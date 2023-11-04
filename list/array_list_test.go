@@ -6,8 +6,60 @@ import (
 	"github.com/brandencmw/go-data-structures.git/list"
 )
 
-func compareListContents(expectedList, listToCheck list.ArrayList[int]) {
+func TestListContentsEqualForEqualLists(t *testing.T) {
+	list1 := list.ArrayList[int64]{}
+	list2 := list.ArrayList[int64]{}
 
+	l1Equalsl2 := list1.ContentsEqualTo(list2)
+	if !l1Equalsl2 {
+		t.Errorf("Wrong output, l1 is %v and l2 is %v", list1, list2)
+	}
+	l2Equalsl1 := list2.ContentsEqualTo(list1)
+	if !l2Equalsl1 {
+		t.Errorf("Wrong output, l1 is %v and l2 is %v", list1, list2)
+	}
+
+	list1 = list.ArrayList[int64]{1, 2, 3, 4, 5}
+	list2 = list.ArrayList[int64]{1, 2, 3, 4, 5}
+	l1Equalsl2 = list1.ContentsEqualTo(list2)
+	if !l1Equalsl2 {
+		t.Errorf("Wrong output, l1 is %v and l2 is %v", list1, list2)
+	}
+	l2Equalsl1 = list2.ContentsEqualTo(list1)
+	if !l2Equalsl1 {
+		t.Errorf("Wrong output, l1 is %v and l2 is %v", list1, list2)
+	}
+
+}
+
+func TestListContentsEqualForDifferentLength(t *testing.T) {
+	list1 := list.ArrayList[int64]{1, 2, 3, 4, 5}
+	list2 := list.ArrayList[int64]{1, 2, 3, 4}
+
+	l1Equalsl2 := list1.ContentsEqualTo(list2)
+	if l1Equalsl2 {
+		t.Errorf("Wrong output, list contents are not equal")
+	}
+
+	l2Equalsl1 := list2.ContentsEqualTo(list1)
+	if l2Equalsl1 {
+		t.Errorf("Wrong output, list contents are not equal")
+	}
+}
+
+func TestListContentsEqualForSameLengthDifferentContents(t *testing.T) {
+	list1 := list.ArrayList[int64]{1, 2, 3, 4, 5}
+	list2 := list.ArrayList[int64]{1, 2, 3, 4, 6}
+
+	l1Equalsl2 := list1.ContentsEqualTo(list2)
+	if l1Equalsl2 {
+		t.Errorf("Wrong output, list contents are not equal")
+	}
+
+	l2Equalsl1 := list2.ContentsEqualTo(list1)
+	if l2Equalsl1 {
+		t.Errorf("Wrong output, list contents are not equal")
+	}
 }
 
 func TestInsertToFrontOfPopulatedList(t *testing.T) {
