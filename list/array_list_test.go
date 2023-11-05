@@ -152,3 +152,35 @@ func TestInsertToInvalidIndex(t *testing.T) {
 
 	originalList.Insert(itemToAdd, initialLen+1)
 }
+
+func TestPrependToPopulatedList(t *testing.T) {
+	const itemToAdd testType = 0
+	originalList := list.ArrayList[testType]{1, 2, 3, 4, 5}
+	initialLen := len(originalList)
+
+	expectedList := append(list.ArrayList[testType]{itemToAdd}, originalList...)
+	resultLen := originalList.Prepend(itemToAdd)
+	if resultLen != initialLen+1 {
+		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
+	}
+
+	if !originalList.ContentsEqualTo(expectedList) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	}
+}
+
+func TestPrependToEmptyList(t *testing.T) {
+	const itemToAdd testType = 0
+	originalList := list.ArrayList[testType]{}
+	initialLen := len(originalList)
+
+	expectedList := list.ArrayList[testType]{itemToAdd}
+	resultLen := originalList.Prepend(itemToAdd)
+	if resultLen != initialLen+1 {
+		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
+	}
+
+	if !originalList.ContentsEqualTo(expectedList) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	}
+}
