@@ -135,15 +135,13 @@ func TestInsertToEmptyList(t *testing.T) {
 	}
 }
 
-func checkForPanic(t *testing.T) {
-	if r := recover(); r == nil {
-		t.Errorf("Code should have panicked")
-	}
-}
-
 func TestInsertToInvalidIndex(t *testing.T) {
 
-	defer checkForPanic(t)
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Code should have panicked")
+		}
+	}()
 
 	const itemToAdd testType = 5
 
@@ -267,8 +265,57 @@ func TestRemoveFromMiddleOfPopulatedList(t *testing.T) {
 }
 
 func TestRemoveFromEmptyList(t *testing.T) {
-	defer checkForPanic(t)
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Code should have panicked")
+		}
+	}()
 
-	originalList := list.ArrayList[testType]{1}
+	originalList := list.ArrayList[testType]{}
 	originalList.Remove(0)
+}
+
+func TestGetFromPopulatedList(t *testing.T) {
+	testList := list.ArrayList[testType]{1, 2, 3, 4, 5}
+	for index, expectedItem := range testList {
+		retrievedItem := testList.Get(index)
+		if expectedItem != retrievedItem {
+			t.Errorf("Didn't retrieve correct item: expected %v, got %v", expectedItem, retrievedItem)
+		}
+	}
+}
+
+func TestGetFromEmptyList(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Code should have panicked")
+		}
+	}()
+
+	testList := list.ArrayList[testType]{}
+	testList.Get(0)
+}
+
+func TestSetItemsInPopulatedList(t *testing.T) {
+	testList := list.ArrayList[testType]{1, 2, 3, 4, 5}
+	expectedResultingList := list.ArrayList[testType]{6, 7, 8, 9, 10}
+
+	for index, expectedItem := range expectedResultingList {
+		testList.Set(expectedItem, index)
+		if testList[index] != expectedItem {
+			t.Errorf("Didn't set item correctly: expected %v, got %v", expectedItem, testList[index])
+		}
+	}
+
+}
+
+func TestSetItemInEmptyList(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Code should have panicked")
+		}
+	}()
+
+	testList := list.ArrayList[testType]{}
+	testList.Set(0, 0)
 }
