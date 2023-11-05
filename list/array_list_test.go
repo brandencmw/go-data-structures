@@ -6,9 +6,11 @@ import (
 	"github.com/brandencmw/go-data-structures.git/list"
 )
 
+type testType int64
+
 func TestListContentsEqualForEqualLists(t *testing.T) {
-	list1 := list.ArrayList[int64]{}
-	list2 := list.ArrayList[int64]{}
+	list1 := list.ArrayList[testType]{}
+	list2 := list.ArrayList[testType]{}
 
 	l1Equalsl2 := list1.ContentsEqualTo(list2)
 	if !l1Equalsl2 {
@@ -19,8 +21,8 @@ func TestListContentsEqualForEqualLists(t *testing.T) {
 		t.Errorf("Wrong output, l1 is %v and l2 is %v", list1, list2)
 	}
 
-	list1 = list.ArrayList[int64]{1, 2, 3, 4, 5}
-	list2 = list.ArrayList[int64]{1, 2, 3, 4, 5}
+	list1 = list.ArrayList[testType]{1, 2, 3, 4, 5}
+	list2 = list.ArrayList[testType]{1, 2, 3, 4, 5}
 	l1Equalsl2 = list1.ContentsEqualTo(list2)
 	if !l1Equalsl2 {
 		t.Errorf("Wrong output, l1 is %v and l2 is %v", list1, list2)
@@ -33,8 +35,8 @@ func TestListContentsEqualForEqualLists(t *testing.T) {
 }
 
 func TestListContentsEqualForDifferentLength(t *testing.T) {
-	list1 := list.ArrayList[int64]{1, 2, 3, 4, 5}
-	list2 := list.ArrayList[int64]{1, 2, 3, 4}
+	list1 := list.ArrayList[testType]{1, 2, 3, 4, 5}
+	list2 := list.ArrayList[testType]{1, 2, 3, 4}
 
 	l1Equalsl2 := list1.ContentsEqualTo(list2)
 	if l1Equalsl2 {
@@ -48,8 +50,8 @@ func TestListContentsEqualForDifferentLength(t *testing.T) {
 }
 
 func TestListContentsEqualForSameLengthDifferentContents(t *testing.T) {
-	list1 := list.ArrayList[int64]{1, 2, 3, 4, 5}
-	list2 := list.ArrayList[int64]{1, 2, 3, 4, 6}
+	list1 := list.ArrayList[testType]{1, 2, 3, 4, 5}
+	list2 := list.ArrayList[testType]{1, 2, 3, 4, 6}
 
 	l1Equalsl2 := list1.ContentsEqualTo(list2)
 	if l1Equalsl2 {
@@ -63,22 +65,90 @@ func TestListContentsEqualForSameLengthDifferentContents(t *testing.T) {
 }
 
 func TestInsertToFrontOfPopulatedList(t *testing.T) {
-	list := list.ArrayList[int64]{1, 4, 5, 7, 5}
-	initialLen := len(list)
+	const itemToAdd testType = 5
 
-	result := list.Insert(5, 0)
-	if result != initialLen+1 {
-		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, result)
+	originalList := list.ArrayList[testType]{1, 4, 5, 7, 5}
+	initialLen := len(originalList)
+
+	expectedList := list.ArrayList[testType]{itemToAdd, 1, 4, 5, 7, 5}
+	resultLen := originalList.Insert(itemToAdd, 0)
+	if resultLen != initialLen+1 {
+		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
 	}
 
+	if !originalList.ContentsEqualTo(expectedList) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	}
 }
 
 func TestInsertToRearOfPopulatedList(t *testing.T) {
-	list := list.ArrayList[int64]{1, 4, 5, 7, 5}
-	initialLen := len(list)
+	const itemToAdd testType = 5
 
-	result := list.Insert(5, initialLen)
-	if result != initialLen+1 {
-		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, result)
+	originalList := list.ArrayList[testType]{1, 4, 5, 7, 5}
+	initialLen := len(originalList)
+
+	expectedList := list.ArrayList[testType]{1, 4, 5, 7, 5, itemToAdd}
+	resultLen := originalList.Insert(itemToAdd, initialLen)
+	if resultLen != initialLen+1 {
+		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
 	}
+
+	if !originalList.ContentsEqualTo(expectedList) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	}
+}
+
+func TestInsertToMiddleOfPopulatedList(t *testing.T) {
+	const itemToAdd testType = 5
+
+	originalList := list.ArrayList[testType]{1, 4, 5, 7, 5}
+	initialLen := len(originalList)
+	insertIndex := initialLen / 2
+
+	expectedList := append(originalList[:insertIndex], itemToAdd)
+	expectedList = append(expectedList, originalList[insertIndex:]...)
+
+	resultLen := originalList.Insert(itemToAdd, insertIndex)
+	if resultLen != initialLen+1 {
+		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
+	}
+
+	if !originalList.ContentsEqualTo(expectedList) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	}
+}
+
+func TestInsertToEmptyList(t *testing.T) {
+	const itemToAdd testType = 5
+
+	originalList := list.ArrayList[testType]{}
+	initialLen := len(originalList)
+
+	expectedList := list.ArrayList[testType]{itemToAdd}
+	resultLen := originalList.Insert(itemToAdd, 0)
+	if resultLen != initialLen+1 {
+		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
+	}
+
+	if !originalList.ContentsEqualTo(expectedList) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	}
+}
+
+func checkForPanic(t *testing.T) {
+	if r := recover(); r == nil {
+		t.Errorf("Code should have panicked")
+	}
+}
+
+func TestInsertToInvalidIndex(t *testing.T) {
+
+	defer checkForPanic(t)
+
+	const itemToAdd testType = 5
+
+	originalList := list.ArrayList[testType]{}
+	initialLen := len(originalList)
+
+	originalList.Insert(itemToAdd, initialLen+1)
 }
