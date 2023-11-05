@@ -184,3 +184,91 @@ func TestPrependToEmptyList(t *testing.T) {
 		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
 	}
 }
+
+func TestAppendToPopulatedList(t *testing.T) {
+	const itemToAdd testType = 0
+	originalList := list.ArrayList[testType]{1, 2, 3, 4, 5}
+	initialLen := len(originalList)
+
+	expectedList := append(originalList, itemToAdd)
+	resultLen := originalList.Append(itemToAdd)
+	if resultLen != initialLen+1 {
+		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
+	}
+
+	if !originalList.ContentsEqualTo(expectedList) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	}
+}
+
+func TestAppendToEmptyList(t *testing.T) {
+	const itemToAdd testType = 0
+	originalList := list.ArrayList[testType]{}
+	initialLen := len(originalList)
+
+	expectedList := list.ArrayList[testType]{itemToAdd}
+	resultLen := originalList.Append(itemToAdd)
+	if resultLen != initialLen+1 {
+		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
+	}
+
+	if !originalList.ContentsEqualTo(expectedList) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	}
+}
+
+func TestRemoveFromFrontOfPopulatedList(t *testing.T) {
+	originalList := list.ArrayList[testType]{1, 2, 3, 4, 5}
+	initialLen := len(originalList)
+
+	expectedList := append(list.ArrayList[testType]{}, originalList[1:]...)
+	resultLen := originalList.Remove(0)
+	if resultLen != initialLen-1 {
+		t.Errorf("Wrong length: wanted %v, got %v", initialLen-1, resultLen)
+	}
+
+	if !originalList.ContentsEqualTo(expectedList) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	}
+}
+
+func TestRemoveFromRearOfPopulatedList(t *testing.T) {
+	originalList := list.ArrayList[testType]{1, 2, 3, 4, 5}
+	initialLen := len(originalList)
+
+	expectedList := append(list.ArrayList[testType]{}, originalList[:initialLen-1]...)
+	resultLen := originalList.Remove(initialLen - 1)
+	if resultLen != initialLen-1 {
+		t.Errorf("Wrong length: wanted %v, got %v", initialLen-1, resultLen)
+	}
+
+	if !originalList.ContentsEqualTo(expectedList) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	}
+}
+
+func TestRemoveFromMiddleOfPopulatedList(t *testing.T) {
+	originalList := list.ArrayList[testType]{1, 2, 3, 4, 5}
+	initialLen := len(originalList)
+
+	removalIndex := initialLen / 2
+
+	expectedList := append(list.ArrayList[testType]{}, originalList[:removalIndex]...)
+	expectedList = append(expectedList, originalList[removalIndex+1:]...)
+
+	resultLen := originalList.Remove(removalIndex)
+	if resultLen != initialLen-1 {
+		t.Errorf("Wrong length: wanted %v, got %v", initialLen-1, resultLen)
+	}
+
+	if !originalList.ContentsEqualTo(expectedList) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	}
+}
+
+func TestRemoveFromEmptyList(t *testing.T) {
+	defer checkForPanic(t)
+
+	originalList := list.ArrayList[testType]{1}
+	originalList.Remove(0)
+}
