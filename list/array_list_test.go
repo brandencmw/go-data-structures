@@ -4,133 +4,177 @@ import (
 	"testing"
 
 	"github.com/brandencmw/go-data-structures.git/list"
+	"github.com/brandencmw/go-data-structures.git/utils"
 )
 
-type testType int64
+const BASE_LEN = 5
 
-func TestListContentsEqualForEqualLists(t *testing.T) {
-	list1 := list.ArrayList[testType]{}
-	list2 := list.ArrayList[testType]{}
+var testVal int64 //Used for generating test values of consistent type
 
-	l1Equalsl2 := list1.ContentsEqualTo(list2)
+func createTestArrayListOfLen(length uint) *list.ArrayList[int64] {
+	newListContents := make([]int64, length)
+	for i := uint(0); i < length; i++ {
+		newListContents[i] = utils.GetRandomValueOfType(testVal).(int64)
+	}
+	return list.NewArrayList[int64](newListContents...)
+}
+
+func createTestArrayListOfContent(contents ...int64) *list.ArrayList[int64] {
+	return list.NewArrayList[int64](contents...)
+}
+
+func getTestItem() int64 {
+	return utils.GetRandomValueOfType(testVal).(int64)
+}
+
+func TestArrayListCloneAllocatesDifferentMemory(t *testing.T) {
+	originalList := createTestArrayListOfLen(BASE_LEN)
+	clonedList := originalList.Clone()
+
+	if originalList == clonedList {
+		t.Errorf("Cloned list should not reference same memory, both reference %v", originalList)
+	}
+}
+
+func TestArrayListCloneGeneratesSameContents(t *testing.T) {
+	originalList := createTestArrayListOfLen(BASE_LEN)
+	clonedList := originalList.Clone()
+
+	originalContents := originalList.Contents()
+	clonedContents := clonedList.Contents()
+	for idx := range originalContents {
+		if originalContents[idx] != clonedContents[idx] {
+			t.Errorf("Item not cloned. Expected %v, got %v", originalContents[idx], clonedContents[idx])
+		}
+	}
+}
+
+func TestArrayListContentsEqualForEqualLists(t *testing.T) {
+	list1 := createTestArrayListOfLen(BASE_LEN)
+	list2 := createTestArrayListOfContent(list1.Contents()...)
+
+	l1Equalsl2 := list1.Equals(*list2)
 	if !l1Equalsl2 {
 		t.Errorf("Wrong output, l1 is %v and l2 is %v", list1, list2)
 	}
-	l2Equalsl1 := list2.ContentsEqualTo(list1)
+	l2Equalsl1 := list2.Equals(*list1)
 	if !l2Equalsl1 {
 		t.Errorf("Wrong output, l1 is %v and l2 is %v", list1, list2)
 	}
 
-	list1 = list.ArrayList[testType]{1, 2, 3, 4, 5}
-	list2 = list.ArrayList[testType]{1, 2, 3, 4, 5}
-	l1Equalsl2 = list1.ContentsEqualTo(list2)
+	list1 = createTestArrayListOfLen(5)
+	list2 = list1.Clone()
+	l1Equalsl2 = list1.Equals(*list2)
 	if !l1Equalsl2 {
 		t.Errorf("Wrong output, l1 is %v and l2 is %v", list1, list2)
 	}
-	l2Equalsl1 = list2.ContentsEqualTo(list1)
+	l2Equalsl1 = list2.Equals(*list1)
 	if !l2Equalsl1 {
 		t.Errorf("Wrong output, l1 is %v and l2 is %v", list1, list2)
 	}
 
 }
 
-func TestListContentsEqualForDifferentLength(t *testing.T) {
-	list1 := list.ArrayList[testType]{1, 2, 3, 4, 5}
-	list2 := list.ArrayList[testType]{1, 2, 3, 4}
+func TestArrayListContentsEqualForDifferentLength(t *testing.T) {
 
-	l1Equalsl2 := list1.ContentsEqualTo(list2)
+	list1 := createTestArrayListOfLen(BASE_LEN)
+	list2 := createTestArrayListOfContent(list1.Contents()[:BASE_LEN-1]...)
+
+	l1Equalsl2 := list1.Equals(*list2)
 	if l1Equalsl2 {
-		t.Errorf("Wrong output, list contents are not equal")
+		t.Errorf("Wrong output, l1 is %v and l2 is %v", list1.Contents(), list2.Contents())
 	}
 
-	l2Equalsl1 := list2.ContentsEqualTo(list1)
+	l2Equalsl1 := list2.Equals(*list1)
 	if l2Equalsl1 {
-		t.Errorf("Wrong output, list contents are not equal")
+		t.Errorf("Wrong output, l2 is %v and l1 is %v", list2.Contents(), list1.Contents())
 	}
 }
 
-func TestListContentsEqualForSameLengthDifferentContents(t *testing.T) {
-	list1 := list.ArrayList[testType]{1, 2, 3, 4, 5}
-	list2 := list.ArrayList[testType]{1, 2, 3, 4, 6}
+func TestArrayListContentsEqualForSameLengthDifferentContents(t *testing.T) {
 
-	l1Equalsl2 := list1.ContentsEqualTo(list2)
+	list1 := createTestArrayListOfLen(BASE_LEN)
+	list2 := createTestArrayListOfLen(BASE_LEN)
+
+	l1Equalsl2 := list1.Equals(*list2)
 	if l1Equalsl2 {
-		t.Errorf("Wrong output, list contents are not equal")
+		t.Errorf("Wrong output, l1 is %v and l2 is %v", list1.Contents(), list2.Contents())
 	}
 
-	l2Equalsl1 := list2.ContentsEqualTo(list1)
+	l2Equalsl1 := list2.Equals(*list1)
 	if l2Equalsl1 {
-		t.Errorf("Wrong output, list contents are not equal")
+		t.Errorf("Wrong output, l2 is %v and l1 is %v", list2.Contents(), list2.Contents())
 	}
 }
 
-func TestInsertToFrontOfPopulatedList(t *testing.T) {
-	const itemToAdd testType = 5
+func TestInsertToFrontOfPopulatedArrayList(t *testing.T) {
+	itemToAdd := getTestItem()
 
-	originalList := list.ArrayList[testType]{1, 4, 5, 7, 5}
-	initialLen := len(originalList)
+	originalList := createTestArrayListOfLen(BASE_LEN)
 
-	expectedList := list.ArrayList[testType]{itemToAdd, 1, 4, 5, 7, 5}
+	expectedListContents := append([]int64{itemToAdd}, originalList.Contents()...)
 	resultLen := originalList.Insert(itemToAdd, 0)
-	if resultLen != initialLen+1 {
-		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
+	if resultLen != BASE_LEN+1 {
+		t.Errorf("Wrong length: wanted %v, got %v", BASE_LEN+1, resultLen)
 	}
 
-	if !originalList.ContentsEqualTo(expectedList) {
-		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
-	}
-}
-
-func TestInsertToRearOfPopulatedList(t *testing.T) {
-	const itemToAdd testType = 5
-
-	originalList := list.ArrayList[testType]{1, 4, 5, 7, 5}
-	initialLen := len(originalList)
-
-	expectedList := list.ArrayList[testType]{1, 4, 5, 7, 5, itemToAdd}
-	resultLen := originalList.Insert(itemToAdd, initialLen)
-	if resultLen != initialLen+1 {
-		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
-	}
-
-	if !originalList.ContentsEqualTo(expectedList) {
-		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	if !originalList.Equals(*createTestArrayListOfContent(expectedListContents...)) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedListContents, originalList.Contents())
 	}
 }
 
-func TestInsertToMiddleOfPopulatedList(t *testing.T) {
-	const itemToAdd testType = 5
+func TestInsertToRearOfPopulatedArrayList(t *testing.T) {
+	itemToAdd := getTestItem()
 
-	originalList := list.ArrayList[testType]{1, 4, 5, 7, 5}
-	initialLen := len(originalList)
-	insertIndex := initialLen / 2
+	originalList := createTestArrayListOfLen(BASE_LEN)
 
-	expectedList := append(originalList[:insertIndex], itemToAdd)
-	expectedList = append(expectedList, originalList[insertIndex:]...)
+	expectedListContents := append(originalList.Contents(), itemToAdd)
+	resultLen := originalList.Insert(itemToAdd, BASE_LEN)
+	if resultLen != BASE_LEN+1 {
+		t.Errorf("Wrong length: wanted %v, got %v", BASE_LEN+1, resultLen)
+	}
+
+	if !originalList.Equals(*createTestArrayListOfContent(expectedListContents...)) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedListContents, originalList.Contents())
+	}
+}
+
+func TestInsertToMiddleOfPopulatedArrayList(t *testing.T) {
+	itemToAdd := getTestItem()
+
+	originalList := createTestArrayListOfLen(BASE_LEN)
+
+	insertIndex := BASE_LEN / 2
+
+	originalListContents := originalList.Contents()
+	front := originalListContents[:insertIndex]
+	expectedListContents := make([]int64, len(front))
+	copy(expectedListContents, front)
+	expectedListContents = append(expectedListContents, itemToAdd)
+	expectedListContents = append(expectedListContents, originalListContents[insertIndex:]...)
 
 	resultLen := originalList.Insert(itemToAdd, insertIndex)
-	if resultLen != initialLen+1 {
-		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
+	if resultLen != BASE_LEN+1 {
+		t.Errorf("Wrong length: wanted %v, got %v", BASE_LEN+1, resultLen)
 	}
 
-	if !originalList.ContentsEqualTo(expectedList) {
-		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	if !originalList.Equals(*createTestArrayListOfContent(expectedListContents...)) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedListContents, originalList.Contents())
 	}
 }
 
-func TestInsertToEmptyList(t *testing.T) {
-	const itemToAdd testType = 5
+func TestInsertToEmptyArrayList(t *testing.T) {
+	itemToAdd := getTestItem()
 
-	originalList := list.ArrayList[testType]{}
-	initialLen := len(originalList)
+	originalList := createTestArrayListOfLen(0)
 
-	expectedList := list.ArrayList[testType]{itemToAdd}
+	expectedList := createTestArrayListOfContent(itemToAdd)
 	resultLen := originalList.Insert(itemToAdd, 0)
-	if resultLen != initialLen+1 {
-		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
+	if resultLen != expectedList.Size() {
+		t.Errorf("Wrong length: wanted 1, got %v", resultLen)
 	}
 
-	if !originalList.ContentsEqualTo(expectedList) {
+	if !originalList.Equals(*expectedList) {
 		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
 	}
 }
@@ -143,141 +187,138 @@ func TestInsertToInvalidIndex(t *testing.T) {
 		}
 	}()
 
-	const itemToAdd testType = 5
-
-	originalList := list.ArrayList[testType]{}
-	initialLen := len(originalList)
-
-	originalList.Insert(itemToAdd, initialLen+1)
+	itemToAdd := getTestItem()
+	originalList := createTestArrayListOfLen(BASE_LEN)
+	originalList.Insert(itemToAdd, BASE_LEN+1)
 }
 
-func TestPrependToPopulatedList(t *testing.T) {
-	const itemToAdd testType = 0
-	originalList := list.ArrayList[testType]{1, 2, 3, 4, 5}
-	initialLen := len(originalList)
+func TestPrependToPopulatedArrayList(t *testing.T) {
+	itemToAdd := getTestItem()
+	originalList := createTestArrayListOfLen(BASE_LEN)
 
-	expectedList := append(list.ArrayList[testType]{itemToAdd}, originalList...)
+	expectedListContents := append([]int64{itemToAdd}, originalList.Contents()...)
+	expectedList := createTestArrayListOfContent(expectedListContents...)
+
 	resultLen := originalList.Prepend(itemToAdd)
-	if resultLen != initialLen+1 {
-		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
+	if resultLen != expectedList.Size() {
+		t.Errorf("Wrong length: wanted %v, got %v", expectedList.Size(), resultLen)
 	}
 
-	if !originalList.ContentsEqualTo(expectedList) {
-		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
+	if !originalList.Equals(*expectedList) {
+		t.Errorf("Wrong list contents: expected %v, got %v", expectedList.Contents(), originalList.Contents())
 	}
 }
 
-func TestPrependToEmptyList(t *testing.T) {
-	const itemToAdd testType = 0
-	originalList := list.ArrayList[testType]{}
-	initialLen := len(originalList)
+func TestPrependToEmptyArrayList(t *testing.T) {
+	itemToAdd := getTestItem()
+	originalList := createTestArrayListOfLen(0)
 
-	expectedList := list.ArrayList[testType]{itemToAdd}
+	expectedList := createTestArrayListOfContent(itemToAdd)
 	resultLen := originalList.Prepend(itemToAdd)
-	if resultLen != initialLen+1 {
-		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
+	if resultLen != expectedList.Size() {
+		t.Errorf("Wrong length: wanted %v, got %v", expectedList.Size(), resultLen)
 	}
 
-	if !originalList.ContentsEqualTo(expectedList) {
+	if !originalList.Equals(*expectedList) {
 		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
 	}
 }
 
-func TestAppendToPopulatedList(t *testing.T) {
-	const itemToAdd testType = 0
-	originalList := list.ArrayList[testType]{1, 2, 3, 4, 5}
-	initialLen := len(originalList)
+func TestAppendToPopulatedArrayList(t *testing.T) {
+	itemToAdd := getTestItem()
+	originalList := createTestArrayListOfLen(BASE_LEN)
 
-	expectedList := append(originalList, itemToAdd)
+	expectedListContents := append(originalList.Contents(), itemToAdd)
+	expectedList := createTestArrayListOfContent(expectedListContents...)
+
 	resultLen := originalList.Append(itemToAdd)
-	if resultLen != initialLen+1 {
-		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
+	if resultLen != expectedList.Size() {
+		t.Errorf("Wrong length: wanted %v, got %v", expectedList.Size(), resultLen)
 	}
 
-	if !originalList.ContentsEqualTo(expectedList) {
+	if !originalList.Equals(*expectedList) {
 		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
 	}
 }
 
-func TestAppendToEmptyList(t *testing.T) {
-	const itemToAdd testType = 0
-	originalList := list.ArrayList[testType]{}
-	initialLen := len(originalList)
+func TestAppendToEmptyArrayList(t *testing.T) {
+	itemToAdd := getTestItem()
+	originalList := createTestArrayListOfLen(0)
 
-	expectedList := list.ArrayList[testType]{itemToAdd}
+	expectedList := createTestArrayListOfContent(itemToAdd)
 	resultLen := originalList.Append(itemToAdd)
-	if resultLen != initialLen+1 {
-		t.Errorf("Wrong length: wanted %v, got %v", initialLen+1, resultLen)
+	if resultLen != expectedList.Size() {
+		t.Errorf("Wrong length: wanted %v, got %v", expectedList.Size(), resultLen)
 	}
 
-	if !originalList.ContentsEqualTo(expectedList) {
+	if !originalList.Equals(*expectedList) {
 		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
 	}
 }
 
-func TestRemoveFromFrontOfPopulatedList(t *testing.T) {
-	originalList := list.ArrayList[testType]{1, 2, 3, 4, 5}
-	initialLen := len(originalList)
+func TestRemoveFromFrontOfPopulatedArrayList(t *testing.T) {
+	originalList := createTestArrayListOfLen(BASE_LEN)
 
-	expectedList := append(list.ArrayList[testType]{}, originalList[1:]...)
+	expectedList := createTestArrayListOfContent(originalList.Contents()[1:]...)
 	resultLen := originalList.Remove(0)
-	if resultLen != initialLen-1 {
-		t.Errorf("Wrong length: wanted %v, got %v", initialLen-1, resultLen)
+	if resultLen != expectedList.Size() {
+		t.Errorf("Wrong length: wanted %v, got %v", expectedList.Size(), resultLen)
 	}
 
-	if !originalList.ContentsEqualTo(expectedList) {
+	if !originalList.Equals(*expectedList) {
 		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
 	}
 }
 
-func TestRemoveFromRearOfPopulatedList(t *testing.T) {
-	originalList := list.ArrayList[testType]{1, 2, 3, 4, 5}
-	initialLen := len(originalList)
+func TestRemoveFromRearOfPopulatedArrayList(t *testing.T) {
+	originalList := createTestArrayListOfLen(BASE_LEN)
 
-	expectedList := append(list.ArrayList[testType]{}, originalList[:initialLen-1]...)
-	resultLen := originalList.Remove(initialLen - 1)
-	if resultLen != initialLen-1 {
-		t.Errorf("Wrong length: wanted %v, got %v", initialLen-1, resultLen)
+	expectedList := createTestArrayListOfContent(originalList.Contents()[:BASE_LEN-1]...)
+	resultLen := originalList.Remove(BASE_LEN - 1)
+	if resultLen != expectedList.Size() {
+		t.Errorf("Wrong length: wanted %v, got %v", expectedList.Size(), resultLen)
 	}
 
-	if !originalList.ContentsEqualTo(expectedList) {
+	if !originalList.Equals(*expectedList) {
 		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
 	}
 }
 
-func TestRemoveFromMiddleOfPopulatedList(t *testing.T) {
-	originalList := list.ArrayList[testType]{1, 2, 3, 4, 5}
-	initialLen := len(originalList)
+func TestRemoveFromMiddleOfPopulatedArrayList(t *testing.T) {
+	originalList := createTestArrayListOfLen(BASE_LEN)
 
-	removalIndex := initialLen / 2
+	removalIndex := BASE_LEN / 2
 
-	expectedList := append(list.ArrayList[testType]{}, originalList[:removalIndex]...)
-	expectedList = append(expectedList, originalList[removalIndex+1:]...)
+	originalListContents := originalList.Contents()
+	expectedListContents := make([]int64, len(originalListContents[:removalIndex]))
+	copy(expectedListContents, originalListContents[:removalIndex])
+	expectedListContents = append(expectedListContents, originalListContents[removalIndex+1:]...)
+	expectedList := createTestArrayListOfContent(expectedListContents...)
 
 	resultLen := originalList.Remove(removalIndex)
-	if resultLen != initialLen-1 {
-		t.Errorf("Wrong length: wanted %v, got %v", initialLen-1, resultLen)
+	if resultLen != expectedList.Size() {
+		t.Errorf("Wrong length: wanted %v, got %v", expectedList.Size(), resultLen)
 	}
 
-	if !originalList.ContentsEqualTo(expectedList) {
+	if !originalList.Equals(*expectedList) {
 		t.Errorf("Wrong list contents: expected %v, got %v", expectedList, originalList)
 	}
 }
 
-func TestRemoveFromEmptyList(t *testing.T) {
+func TestRemoveFromEmptyArrayList(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Code should have panicked")
 		}
 	}()
 
-	originalList := list.ArrayList[testType]{}
+	originalList := createTestArrayListOfLen(0)
 	originalList.Remove(0)
 }
 
-func TestGetFromPopulatedList(t *testing.T) {
-	testList := list.ArrayList[testType]{1, 2, 3, 4, 5}
-	for index, expectedItem := range testList {
+func TestGetFromPopulatedArrayList(t *testing.T) {
+	testList := createTestArrayListOfLen(BASE_LEN)
+	for index, expectedItem := range testList.Contents() {
 		retrievedItem := testList.Get(index)
 		if expectedItem != retrievedItem {
 			t.Errorf("Didn't retrieve correct item: expected %v, got %v", expectedItem, retrievedItem)
@@ -285,37 +326,38 @@ func TestGetFromPopulatedList(t *testing.T) {
 	}
 }
 
-func TestGetFromEmptyList(t *testing.T) {
+func TestGetFromEmptyArrayList(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Code should have panicked")
 		}
 	}()
 
-	testList := list.ArrayList[testType]{}
+	testList := createTestArrayListOfLen(0)
 	testList.Get(0)
 }
 
-func TestSetItemsInPopulatedList(t *testing.T) {
-	testList := list.ArrayList[testType]{1, 2, 3, 4, 5}
-	expectedResultingList := list.ArrayList[testType]{6, 7, 8, 9, 10}
+func TestSetItemsInPopulatedArrayList(t *testing.T) {
+	testList := createTestArrayListOfLen(BASE_LEN)
+	expectedResultingList := createTestArrayListOfLen(BASE_LEN)
 
-	for index, expectedItem := range expectedResultingList {
-		testList.Set(expectedItem, index)
-		if testList[index] != expectedItem {
-			t.Errorf("Didn't set item correctly: expected %v, got %v", expectedItem, testList[index])
-		}
+	for index, expectedItem := range expectedResultingList.Contents() {
+		testList.Set(index, expectedItem)
+	}
+
+	if !testList.Equals(*expectedResultingList) {
+		t.Errorf("Didn't set items correctly: expected %v, got %v", expectedResultingList.Contents(), testList.Contents())
 	}
 
 }
 
-func TestSetItemInEmptyList(t *testing.T) {
+func TestSetItemInEmptyArrayList(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("Code should have panicked")
 		}
 	}()
 
-	testList := list.ArrayList[testType]{}
+	testList := createTestArrayListOfLen(0)
 	testList.Set(0, 0)
 }
