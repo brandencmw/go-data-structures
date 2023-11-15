@@ -1,5 +1,7 @@
 package list
 
+import "github.com/brandencmw/go-data-structures.git/utils"
+
 type listNode[T comparable] struct {
 	value T
 	next  *listNode[T]
@@ -11,22 +13,18 @@ type LinkedList[T comparable] struct {
 }
 
 func NewLinkedList[T comparable](contents ...T) *LinkedList[T] {
-	size := len(contents)
-	if size == 0 {
-		return &LinkedList[T]{head: nil, Size: size}
+	s := len(contents)
+	if s == 0 {
+		return &LinkedList[T]{head: nil, Size: s}
 	}
 
-	head := newListNode[T](contents[0])
-	if size == 1 {
-		return &LinkedList[T]{head: head, Size: size}
-	}
-
-	curr := head
+	h := newListNode[T](contents[0])
+	curr := h
 	for _, item := range contents[1:] {
 		curr.next = newListNode[T](item)
 		curr = curr.next
 	}
-	return &LinkedList[T]{head: head, Size: size}
+	return &LinkedList[T]{head: h, Size: s}
 }
 
 func newListNode[T comparable](val T) *listNode[T] {
@@ -40,121 +38,121 @@ func (l LinkedList[T]) Head() T {
 	return l.head.value
 }
 
-func (l *LinkedList[T]) Insert(index int, item T) int {
-	if index < 0 || index > l.Size {
-		panic("Invalid index")
-	} else if index == 0 {
-		return l.Prepend(item)
-	} else if index == l.Size {
-		return l.Append(item)
+func (l *LinkedList[T]) Insert(idx int, item T) error {
+	if idx < 0 || idx > l.Size {
+		return &InvalidIndexError{max: l.Size, idx: idx}
+	} else if idx == 0 {
+		l.Prepend(item)
+		return nil
+	} else if idx == l.Size {
+		l.Append(item)
+		return nil
 	}
 
-	current := l.head
-	for i := 0; i < index-1; i++ {
-		current = current.next
+	curr := l.head
+	for i := 0; i < idx-1; i++ {
+		curr = curr.next
 	}
 
 	newNode := listNode[T]{
 		value: item,
-		next:  current.next,
+		next:  curr.next,
 	}
-	current.next = &newNode
+	curr.next = &newNode
 	l.Size++
 
-	return l.Size
+	return nil
 }
 
-func (l *LinkedList[T]) Append(item T) int {
+func (l *LinkedList[T]) Append(item T) {
 
-	newNode := newListNode[T](item)
+	node := newListNode[T](item)
 
 	if l.Size == 0 {
-		l.head = newNode
+		l.head = node
 	} else {
-		current := l.head
+		curr := l.head
 		for i := 0; i < l.Size-1; i++ {
-			current = current.next
+			curr = curr.next
 		}
-		current.next = newNode
+		curr.next = node
 	}
-
 	l.Size++
-	return l.Size
 }
 
-func (l *LinkedList[T]) Prepend(item T) int {
-	var newNodeNext *listNode[T]
+func (l *LinkedList[T]) Prepend(item T) {
+	var next *listNode[T]
 
 	if l.Size == 0 {
-		newNodeNext = nil
+		next = nil
 	} else {
-		newNodeNext = l.head
+		next = l.head
 	}
 
 	l.head = &listNode[T]{
 		value: item,
-		next:  newNodeNext,
+		next:  next,
 	}
 	l.Size++
-
-	return l.Size
 }
 
-func (l *LinkedList[T]) Remove(index int) T {
-	if index < 0 || index > l.Size-1 {
-		panic("Invalid index")
+func (l *LinkedList[T]) Remove(idx int) (T, error) {
+	if idx < 0 || idx > l.Size-1 {
+		return utils.GetZero[T](), &InvalidIndexError{max: l.Size, idx: idx}
 	}
 
-	current := l.head
-	var previous *listNode[T]
-	for i := 0; i < index; i++ {
-		previous = current
-		current = current.next
+	curr := l.head
+	var prev *listNode[T]
+	for i := 0; i < idx; i++ {
+		prev = curr
+		curr = curr.next
 	}
 
-	if current == l.head {
+	if curr == l.head {
 		l.head = l.head.next
 	} else {
-		previous.next = current.next
+		prev.next = curr.next
 	}
-	returnVal := current.value
-	current = nil
+	val := curr.value
+	curr = nil
 	l.Size--
 
-	return returnVal
+	return val, nil
 }
 
-func (l LinkedList[T]) Get(index int) T {
-	if index < 0 || index > l.Size-1 {
-		panic("Invalid index")
+func (l LinkedList[T]) Get(idx int) (T, error) {
+	if idx < 0 || idx > l.Size-1 {
+		return utils.GetZero[T](), &InvalidIndexError{max: l.Size, idx: idx}
 	}
 
-	current := l.head
-	for i := 0; i < index; i++ {
-		current = current.next
+	curr := l.head
+	for i := 0; i < idx; i++ {
+		curr = curr.next
 	}
-	return current.value
+	return curr.value, nil
 }
 
-func (l *LinkedList[T]) Set(index int, item T) {
-	if index < 0 || index > l.Size-1 {
-		panic("Invalid index")
+func (l *LinkedList[T]) Set(idx int, item T) error {
+	if idx < 0 || idx > l.Size-1 {
+		return &InvalidIndexError{max: l.Size, idx: idx}
 	}
 
-	current := l.head
-	for i := 0; i < index; i++ {
-		current = current.next
+	curr := l.head
+	for i := 0; i < idx; i++ {
+		curr = curr.next
 	}
-	current.value = item
+	curr.value = item
+
+	return nil
 }
 
-func (l LinkedList[T]) Equals(listToCompare LinkedList[T]) bool {
-	if l.Size != listToCompare.Size {
+func (l LinkedList[T]) Equals(c LinkedList[T]) bool {
+	if l.Size != c.Size {
 		return false
 	}
 
 	lCurr := l.head
-	cCurr := listToCompare.head
+	cCurr := c.head
 	for lCurr != nil && cCurr != nil {
 		if lCurr.value != cCurr.value {
 			return false

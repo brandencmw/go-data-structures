@@ -1,5 +1,9 @@
 package list
 
+import (
+	"github.com/brandencmw/go-data-structures.git/utils"
+)
+
 type ArrayList[T comparable] struct {
 	contents []T
 }
@@ -12,58 +16,59 @@ func (l *ArrayList[T]) Size() int {
 	return len(l.contents)
 }
 
-func (l *ArrayList[T]) Append(item T) int {
+func (l *ArrayList[T]) Append(item T) {
 	l.contents = append(l.contents, item)
-	return len(l.contents)
 }
 
-func (l *ArrayList[T]) Prepend(item T) int {
+func (l *ArrayList[T]) Prepend(item T) {
 	l.contents = append([]T{item}, l.contents...)
-	return len(l.contents)
 }
 
-func (l *ArrayList[T]) Insert(item T, index int) int {
-	if index < 0 || index > len(l.contents) {
-		panic("Invalid index for insert")
-	} else if index == 0 {
-		return l.Prepend(item)
-	} else if index == len(l.contents) {
-		return l.Append(item)
+func (l *ArrayList[T]) Insert(item T, idx int) error {
+	if idx < 0 || idx > len(l.contents) {
+		return &InvalidIndexError{l.Size(), idx}
+	} else if idx == 0 {
+		l.Prepend(item)
+		return nil
+	} else if idx == len(l.contents) {
+		l.Append(item)
+		return nil
 	}
 
-	front := l.contents[:index]
+	front := l.contents[:idx]
 	lContents := make([]T, len(front))
 	copy(lContents, front)
 	lContents = append(lContents, item)
-	l.contents = append(lContents, l.contents[index:]...)
+	l.contents = append(lContents, l.contents[idx:]...)
 
-	return l.Size()
+	return nil
 }
 
-func (l *ArrayList[T]) Remove(index int) int {
+func (l *ArrayList[T]) Remove(index int) error {
 	if len(l.contents) == 0 {
-		panic("Can't remove item from empty list")
+		return ErrEmptyList
 	} else if len(l.contents) == 1 {
 		l.contents = []T{}
 	}
 
 	l.contents = append(l.contents[:index], l.contents[index+1:]...)
 
-	return l.Size()
+	return nil
 }
 
-func (l ArrayList[T]) Get(index int) T {
-	if index > l.Size()-1 {
-		panic("Invalid index")
+func (l ArrayList[T]) Get(idx int) (T, error) {
+	if idx > l.Size()-1 {
+		return utils.GetZero[T](), &InvalidIndexError{max: l.Size(), idx: idx}
 	}
-	return l.contents[index]
+	return l.contents[idx], nil
 }
 
-func (l *ArrayList[T]) Set(index int, item T) {
-	if index > l.Size()-1 {
-		panic("Invalid index")
+func (l *ArrayList[T]) Set(idx int, item T) error {
+	if idx > l.Size()-1 {
+		return &InvalidIndexError{max: l.Size(), idx: idx}
 	}
-	l.contents[index] = item
+	l.contents[idx] = item
+	return nil
 }
 
 func (l ArrayList[T]) Equals(listToCompare ArrayList[T]) bool {
